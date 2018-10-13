@@ -1,2 +1,2 @@
 # Interrupter
-This is a simple interrupter based on C. Grammar haven't been well-designed yet.  
+This is a simple interrupter based on C.The grammars haven't been well-designed yet.  
