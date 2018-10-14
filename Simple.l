@@ -71,36 +71,36 @@ ID      [a-z][a-z0-9]*
 REGULAR EXPRESSIONS defining the tokens for the Simple language
 =========================================================================*/
 %%
-do       { return(DO);      }
-else     { return(ELSE);    }
-if       { return(IF);      }
-var      { return(VAR);     }
-val      { return(VAl);     }
-console  { return(CONSOLE); }
-switch   { return(SWITCH);  }
-case     { return(case);    }
-default  { return(DEFALUT); }
-continue { return(CONTINUE);}
-break    { return(BREAK);   }
-while    { return(WHILE);   }
-for      { return(FOR);     }
-function { return(FUNCTION);}
-NAN      { return(NAN);     }
-return   { return(RETURN);  }
-yield    { return(YIELD);   }
-true     { return(_TRUE);   }
-false    { return(_FALSE);  }
-NULL     { return(_NULL);   }
-INFINITY { return(INFINITY);}
-try      { return(TRY);     }
-catch    { return(CATCH);   }
-throw    { return(THROW);   }
-finally  { return(FINALLY); }
-import   { return(IMPORT);  }
-package  { return(PACKAGE); }
-super    { return(SUPER);   }
-this     { return(THIS);    }
-new      { return(NEW);     }
+do        { return(DO);      }
+else      { return(ELSE);    }
+if        { return(IF);      }
+var       { return(VAR);     }
+val       { return(VAl);     }
+console   { return(CONSOLE); }
+switch    { return(SWITCH);  }
+case      { return(case);    }
+default   { return(DEFALUT); }
+continue  { return(CONTINUE);}
+break     { return(BREAK);   }
+while     { return(WHILE);   }
+for       { return(FOR);     }
+function  { return(FUNCTION);}
+NAN       { return(NAN);     }
+return    { return(RETURN);  }
+yield     { return(YIELD);   }
+true      { return(_TRUE);   }
+false     { return(_FALSE);  }
+NULL      { return(_NULL);   }
+INFINITY  { return(INFINITY);}
+try       { return(TRY);     }
+catch     { return(CATCH);   }
+throw     { return(THROW);   }
+finally   { return(FINALLY); }
+import    { return(IMPORT);  }
+package   { return(PACKAGE); }
+super     { return(SUPER);   }
+this      { return(THIS);    }
+new       { return(NEW);     }
 interface { return(INTERFACE); }
 implement { return(IMPLEMENT); }
 public    { return(PUBLIC);    }

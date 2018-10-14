@@ -10,46 +10,7 @@ C Libraries, Symbol Table, Code Generator & other C code
 #include "ST.h"     /* Symbol Table                        */
 #define YYDEBUG 1   /* For Debugging                       */
 int errors;         /* Error Count                         */
-
-/*-------------------------------------------------------------------------
-The following support backpatching
--------------------------------------------------------------------------*/
-struct lbs          /* Labels for data, if and while       */
-{
-int for_goto;
-int for_jmp_false;
-};
-struct lbs * newlblrec() /* Allocate space for the labels  */
-{
-return (struct lbs *) malloc(sizeof(struct lbs));
-}
-
-/*-------------------------------------------------------------------------
-Install identifier & check if previously defined.
--------------------------------------------------------------------------*/
-install ( char *sym_name )
-{
-symrec *s;
-s = getsym (sym_name);
-if (s == 0)
-s = putsym (sym_name);
-else { errors++;
-       printf( "%s is already defined\n", sym_name );
-     }
-}
-/*-------------------------------------------------------------------------
-If identifier is defined, generate code
--------------------------------------------------------------------------*/
-context_check( enum code_ops operation, char *sym_name )
-{ symrec *identifier;
-identifier = getsym( sym_name );
-if ( identifier == 0 )
-{ errors++;
-printf( "%s", sym_name );
-printf( "%s\n", " is an undeclared identifier" );
-}
-else gen_code( operation, identifier->offset );
-}
+Env* current_Env = init_new_Env();
 /*=========================================================================
 SEMANTIC RECORDS
 =========================================================================*/
@@ -57,7 +18,6 @@ SEMANTIC RECORDS
 %union semrec                /* The Semantic Records*/
 {                
 char*  id;                    /* Identifiers         */
-struct lbs *lbls;            /* For backpatching    */
 literal* literal_value;
 }
 /*=========================================================================
@@ -113,122 +73,108 @@ GRAMMAR RULES for the Simple language
 program :  stmts          
 ;
 declaration : /* empty */
-| VAR  ID__or_assign ';' { install( $2 );               }
-| VAL ID__with_assign ';' {  }
-| function_declaration 
+            | VAR  ID__or_assign ';' { install( $2 );               }
+            | VAL ID__with_assign ';' {  }
+            | function_declaration 
 ;
 ID__or_assign : /* empty */
-| IDENTIFIER '=' right_value { installID() } 
-| IDENTIFIER { }
-| ID_or_assign ',' ID_or_assign { install( $2 );       }
+              | IDENTIFIER '=' right_value {   } 
+              | IDENTIFIER { }
+              | ID_or_assign ',' ID_or_assign {      }
 ;
 ID__with_assign : IDENTIFIER '=' right_value { } 
-| ID_or_assign ',' ID_or_assign { install( $2 );       }
+                | ID_or_assign ',' ID_or_assign {       }
 ;
 right_value : IDENTIFIER { }
-| '[' array ']'  { }
-| '{' object '}' { }
-| FUNCTION '(' function_params ')' '{' function_body '}'
-| LITERAL { } 
+            | '[' array ']'  { }
+            | '{' object '}' { }
+            | FUNCTION '(' function_params ')' '{' function_body '}'
+            | LITERAL { } 
 ;
 array : /* empty */
-| array_not_empty
+      | array_not_empty
 ;
 array_not_empty : right_value { }
                 | array ',' right_value { }
 ;
 object : /* empty */
-| object_not_empty
+       | object_not_empty
 ;
 object_not_empty : IDENTIFIER ':' right_value { }
                  | object ',' IDENTIFIER ':' right_value { }
 function_params : /* empty */
-| function_params_not_empty
+                | function_params_not_empty
 ;
 function_params_not_empty : IDENTIFIER
                 function_params_not_empty ',' IDENTIFIER
                 ;          | 
 function_declaration : FUNCTION IDENTIFIER '(' function_params ')''{' function_body '}'
 function_body : /* empty */
-| stmts 
-| stmts return_stmt ';'
+              | stmts 
+              | stmts return_stmt ';'
 ;
 return_stmt : "return;"
-|"return" exp ';'
+            |"return" exp ';'
 ;
 not_if_stmt : /* empty */
-| declaration
-| while_stmt
-| do_stmt
-| for_stmt
-| switch_stmt
-| out_stmt
-| assign_stmt
-| function_call_stmt
+            | declaration
+            | while_stmt
+            | do_stmt
+            | for_stmt
+            | switch_stmt
+            | out_stmt
+            | assign_stmt
+            | function_call_stmt
 ;
-out_stmt :  CONSOLE "<<" exp { gen_code( WRITE_INT, 0 ); } ;
+out_stmt :  CONSOLE "<<" exp {  } ;
 
-in_stmt  :  CONSOLE ">>" left_value  { context_check( READ_INT, $2 );}
+in_stmt  :  CONSOLE ">>" left_value  {  }
 
 assign_stmt : /* empty */
-| left_value '=' exp { context_check( STORE, $1 ); }
-| in_stmt 
-| left_value "+=" exp
-| left_value "-=" exp
-| left_value "*=" exp
-| left_value "/=" exp
-| left_value "%=" exp
-| left_value ">>=" exp
-| left_value "<<=" exp
-| left_value ">>>=" exp
-| left_value "&=" exp
-| left_value "|=" exp
-| left_value "^=" exp
-| "++" left_value
-| "--" left_value
-| left_value "++"
-| left_value "--"
+            | left_value '=' exp {  }
+            | in_stmt 
+            | left_value "+=" exp
+            | left_value "-=" exp
+            | left_value "*=" exp
+            | left_value "/=" exp
+            | left_value "%=" exp
+            | left_value ">>=" exp
+            | left_value "<<=" exp
+            | left_value ">>>=" exp
+            | left_value "&=" exp
+            | left_value "|=" exp
+            | left_value "^=" exp
+            | "++" left_value
+            | "--" left_value
+            | left_value "++"
+            | left_value "--"
 ;
 left_value : IDENTIFIER
            | left_value '[' exp ']'
            | left_value '.' IDENTIFIER
 ;
 stmts : /* empty */
-| stmts stmt { }
+      | stmts stmt { }
 ;
-stmt : '{' stmts '}'
- if_matched_stmt | if_open_stmt ;
+stmt : 
+     | '{' stmts '}'
+     | if_matched_stmt 
+     | if_open_stmt ;
 if_open_stmt : IF '(' bool_exp ')' stmt
              | IF '(' bool_exp ')' if_matched_stmt  
                ELSE if_open_stmt ; 
 if_matched_stmt : IF  '(' bool_exp ')' if_matched_stmt ELSE if_matched_stmt
                 | not_if_stmt    ;
-         
-
-// | IF '(' bool_exp ')'    { $1 = (struct lbs *) newlblrec();
-//        stmt                $1->for_jmp_false = reserve_loc();   }
-//               { $1->for_goto = reserve_loc();        }
-// ELSE                     { back_patch( $1->for_jmp_false,
-//                            JMP_FALSE,
-//                            gen_label() );                       }
-//      stmts
-// FI                       { back_patch( $1->for_goto, GOTO, gen_label() ); }
-| WHILE                  { $1 = (struct lbs *) newlblrec();
-                           $1->for_goto = gen_label();                    }
-     exp                 { $1->for_jmp_false = reserve_loc();             }
-DO
-     stmts
-END                      { gen_code( GOTO, $1->for_goto );
-                           back_patch( $1->for_jmp_false,
-                                       JMP_FALSE,
-                                       gen_label() );                     }
+bool_exp: '!' bool_exp 
+        | '(' boo_exp_or ')'
+        | _TRUE
+        | _FALSE
+        | bool_stmt
 ;
-bool_exp: '!' bool_exp | '(' boo_exp_or ')'
-| _TRUE  | _FALSE |
-bool_stmt
-;
-boo_exp_or : boo_exp_or "||" bool_exp_and | bool_exp_and ;
-bool_exp_and : bool_exp_and "&&" | bool_exp ;
+boo_exp_or : boo_exp_or "||" bool_exp_and 
+           | bool_exp_and ;
+bool_exp_and : bool_exp_and "&&" 
+             | bool_exp ;
 bool_stmt : left_value  "<"   left_value
           | left_value  "<="  left_value
           | left_value  "=="  left_value
@@ -238,12 +184,12 @@ bool_stmt : left_value  "<"   left_value
           | left_value  ">"   left_value
           | left_value  ">="  left_value
           | IDENTIFIER   "in" left_value
-exp : LITERAL             { gen_code( LD_INT, $1 );     }
-| IDENTIFIER              { context_check( LD_VAR, $1 );}
-| exp '+' exp             { gen_code( ADD, 0 );         }
-| exp '-' exp             { gen_code( SUB, 0 );         }
-| exp '*' exp             { gen_code( MULT, 0 );        }
-| exp '/' exp             { gen_code( DIV, 0 );         }
+exp : LITERAL             {      }
+| IDENTIFIER              { }
+| exp '+' exp             {          }
+| exp '-' exp             {         }
+| exp '*' exp             {      }
+| exp '/' exp             {       }
 | exp '^' exp             {                             }
 | '(' exp ')'             { $$ = $2;                    }
 | '-' exp %prec           { $$= -$2;                    }
