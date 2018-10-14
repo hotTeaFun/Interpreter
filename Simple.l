@@ -33,6 +33,38 @@ c99_floating_point_constant  ({dfc}|{hfc})
 ucn        ((\\u([[:xdigit:]]{4}))|(\\U([[:xdigit:]]{8})))
 nondigit    [_[:alpha:]]
 c99_id     ([_[:alpha:]]|{ucn})([_[:alnum:]]|{ucn})*
+/* constants */
+/* integers */
+0[0-7]*{ILEN}?
+[1-9][0-9]*{ILEN}?
+0[Xx][0-9a-fA-F]+{ILEN}?
+/* decimal float */
+([0-9]*\.[0-9]+|[0-9]+\.){EXP}?[flFL]?
+[0-9]+{EXP}[flFL]?
+/* hex float */
+0[Xx]([0-9a-fA-F]*\.[0-9a-fA-F]+|[0-9a-fA-F]+\.?)[Pp][-+]?[0-9]+[flFL]?
+/* char const */
+\'([^'\\]|\\['"?\\abfnrtv]|\\[0-7]{1,3}|\\[Xx][0-9a-fA-F]+|{UCN})+\'
+/* string literal */
+L?\"([^"\\]|\\['"?\\abfnrtv]|\\[0-7]{1,3}|\\[Xx][0-9a-fA-F]+|{UCN})*\"
+/* continued line */
+\\$
+/* recognize an include */
+^"#"[ \t]*include[ \t]*[\"<] { BEGIN IFILE; }
+<IFILE>[^>\"]+ {
+{ int c;
+while((c = input()) && c != '\n') ;
+}
+newfile(strdup(yytext));
+BEGIN INITIAL;
+}
+<IFILE>.|\n
+<<EOF>>
+{ fprintf(stderr, "%s:%d bad include line\n",
+curfilename, yylineno);
+BEGIN INITIAL;
+}
+{ if(!popfile()) yyterminate(); }
 ID      [a-z][a-z0-9]*
 %x COMMENT
 /*=========================================================================

@@ -23,22 +23,7 @@ struct lbs * newlblrec() /* Allocate space for the labels  */
 {
 return (struct lbs *) malloc(sizeof(struct lbs));
 }
-enum flag_for_literal{
-    _int=0,_double,_bool,_string,_regexp
-}
-struct literal
-{
-    enum flag_for_literal flag;  
-    char *string_value;　//直接量的字符字面值
-}
-struct literal* newliteral() // Allicate space for the literalsc  
-{
-    return (struct literal *) malloc(sizeof(struct literal));
-}
-deleteliteral(struct literal* unused_literal) // free the space of the literals
-{
-    free(unused_literal);
-}
+
 /*-------------------------------------------------------------------------
 Install identifier & check if previously defined.
 -------------------------------------------------------------------------*/
@@ -182,7 +167,9 @@ not_if_stmt : /* empty */
 | function_call_stmt
 ;
 out_stmt :  CONSOLE "<<" exp { gen_code( WRITE_INT, 0 ); } ;
+
 in_stmt  :  CONSOLE ">>" left_value  { context_check( READ_INT, $2 );}
+
 assign_stmt : /* empty */
 | left_value '=' exp { context_check( STORE, $1 ); }
 | in_stmt 
