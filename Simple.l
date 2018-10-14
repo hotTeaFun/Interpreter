@@ -108,7 +108,9 @@ private   { return(PRIVATE);   }
 protected { return(PROTECTED); }
 {DIGIT}+ { (*yylval.litreal).flag=_int; (*yylval.litreal).string_value =(char *) strdup(yytext);
            return(LITERAL);  }
-{c99_id}     { yylval.id = (char *) strdup(yytext);
+{ c99_floating_point_constant } { (*yylval.litreal).flag=_double; (*yylval.litreal).string_value =(char *) strdup(yytext);
+           return(LITERAL);     }
+{ c99_id }     { yylval.id = (char *) strdup(yytext);
                return(IDENTIFIER);    }
 [ \t\n]+ /* eat up whitespace */
 "\""   

@@ -56,9 +56,9 @@ SEMANTIC RECORDS
 %}
 %union semrec                /* The Semantic Records*/
 {                
-char *id;                    /* Identifiers         */
+char*  id;                    /* Identifiers         */
 struct lbs *lbls;            /* For backpatching    */
-struct literal *literal_value;
+literal* literal_value;
 }
 /*=========================================================================
 TOKENS
